@@ -6,7 +6,7 @@ static int centered = 1;                    /* -c option; centers dmenu on scree
 static int min_width = 1400;                /* minimum width when centered */
 /* -fn option overrides fonts[0]; default X11 font or font set */
 static const char *fonts[] = {
-	"monospace:size=10"
+	"monospace:size=16"
 };
 static const char *prompt      = "<-";      /* -p  option; prompt to the left of input field */
 static const char *colors[SchemeLast][2] = {
@@ -16,7 +16,7 @@ static const char *colors[SchemeLast][2] = {
 	[SchemeOut] = { "#000000", "#00ffff" },
 };
 /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
-static unsigned int lines      = 32;
+static unsigned int lines      = 24;
 
 /*
  * Characters not considered part of a word while deleting words
