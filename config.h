@@ -8,7 +8,7 @@ static int min_width = 1400;                /* minimum width when centered */
 static const char *fonts[] = {
 	"monospace:size=16"
 };
-static const char *prompt      = "<-";      /* -p  option; prompt to the left of input field */
+static const char *prompt      = "ζ(s)=∑1/n^s";      /* -p  option; prompt to the left of input field */
 static const char *colors[SchemeLast][2] = {
 	/*     fg         bg       */
 	[SchemeNorm] = { "#bbbbbb", "#222222" },
