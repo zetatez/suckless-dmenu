@@ -10,6 +10,7 @@
 
 #include <X11/Xlib.h>
 #include <X11/Xatom.h>
+#include <X11/Xproto.h>                                                                                                                                          // patch: dmenu-alpha
 #include <X11/Xutil.h>
 #ifdef XINERAMA
 #include <X11/extensions/Xinerama.h>
@@ -23,6 +24,7 @@
 #define INTERSECT(x,y,w,h,r)  (MAX(0, MIN((x)+(w),(r).x_org+(r).width)  - MAX((x),(r).x_org)) && MAX(0, MIN((y)+(h),(r).y_org+(r).height) - MAX((y),(r).y_org)))
 #define LENGTH(X)             (sizeof X / sizeof X[0])
 #define TEXTW(X)              (drw_fontset_getwidth(drw, (X)) + lrpad)
+#define OPAQUE                0xffU                                                                                                                              // patch: dmenu-alpha
 
 /* enums */
 enum { SchemeNorm, SchemeSel, SchemeNormHighlight, SchemeSelHighlight,
@@ -54,10 +56,16 @@ static XIC xic;
 static Drw *drw;
 static Clr *scheme[SchemeLast];
 
+static int useargb = 0;                                                                                                                                          // patch: dmenu-alpha
+static Visual *visual;                                                                                                                                           // patch: dmenu-alpha
+static int depth;                                                                                                                                                // patch: dmenu-alpha
+static Colormap cmap;                                                                                                                                            // patch: dmenu-alpha
+
 #include "config.h"
 
 static int (*fstrncmp)(const char *, const char *, size_t) = strncmp;
 static char *(*fstrstr)(const char *, const char *) = strstr;
+static void xinitvisual();                                                                                                                                       // patch: dmenu-alpha
 
 static void
 appenditem(struct item *item, struct item **list, struct item **last)
@@ -671,8 +679,10 @@ setup(void)
 	int a, di, n, area = 0;
 #endif
 	/* init appearance */
-	for (j = 0; j < SchemeLast; j++)
-		scheme[j] = drw_scm_create(drw, colors[j], 2);
+//for (j = 0; j < SchemeLast; j++)                                                                                                                               // patch: dmenu-alpha
+	for (i = 0, j = 0; j < SchemeLast; j++)                                                                                                                        // patch: dmenu-alpha
+// 	scheme[j] = drw_scm_create(drw, colors[j], 2);                                                                                                               // patch: dmenu-alpha
+		scheme[j] = drw_scm_create(drw, colors[j], alphas[i], 2);                                                                                                    // patch: dmenu-alpha
 
 	clip = XInternAtom(dpy, "CLIPBOARD",   False);
 	utf8 = XInternAtom(dpy, "UTF8_STRING", False);
@@ -741,11 +751,17 @@ setup(void)
 
 	/* create menu window */
 	swa.override_redirect = True;
-	swa.background_pixel = scheme[SchemeNorm][ColBg].pixel;
+//swa.background_pixel = scheme[SchemeNorm][ColBg].pixel;                                                                                                        // patch: dmenu-alpha
+ 	swa.background_pixel = 0;                                                                                                                                      // patch: dmenu-alpha
+ 	swa.border_pixel = 0;                                                                                                                                          // patch: dmenu-alpha
+ 	swa.colormap = cmap;                                                                                                                                           // patch: dmenu-alpha
 	swa.event_mask = ExposureMask | KeyPressMask | VisibilityChangeMask;
-	win = XCreateWindow(dpy, parentwin, x, y, mw, mh, 0,
-	                    CopyFromParent, CopyFromParent, CopyFromParent,
-	                    CWOverrideRedirect | CWBackPixel | CWEventMask, &swa);
+//win = XCreateWindow(dpy, parentwin, x, y, mw, mh, 0,                                                                                                           // patch: dmenu-alpha
+//                    CopyFromParent, CopyFromParent, CopyFromParent,                                                                                            // patch: dmenu-alpha
+//                    CWOverrideRedirect | CWBackPixel | CWEventMask, &swa);                                                                                     // patch: dmenu-alpha
+ 	win = XCreateWindow(dpy, parentwin, x, y, mw, mh, 0,                                                                                                           // patch: dmenu-alpha
+ 	                    depth, CopyFromParent, visual,                                                                                                             // patch: dmenu-alpha
+ 	                    CWOverrideRedirect | CWBackPixel | CWBorderPixel | CWColormap | CWEventMask, &swa);                                                        // patch: dmenu-alpha
 	XSetClassHint(dpy, win, &ch);
 
 
@@ -778,6 +794,43 @@ usage(void)
 	      "             [-nhb color] [-nhf color] [-shb color] [-shf color] [-w windowid]\n", stderr);
 	exit(1);
 }
+
+void                                                                                                                                                             // patch: dmenu-alpha
+xinitvisual()                                                                                                                                                    // patch: dmenu-alpha
+{                                                                                                                                                                // patch: dmenu-alpha
+	XVisualInfo *infos;                                                                                                                                            // patch: dmenu-alpha
+	XRenderPictFormat *fmt;                                                                                                                                        // patch: dmenu-alpha
+	int nitems;                                                                                                                                                    // patch: dmenu-alpha
+	int i;                                                                                                                                                         // patch: dmenu-alpha
+                                                                                                                                                                 // patch: dmenu-alpha
+	XVisualInfo tpl = {                                                                                                                                            // patch: dmenu-alpha
+		.screen = screen,                                                                                                                                            // patch: dmenu-alpha
+		.depth = 32,                                                                                                                                                 // patch: dmenu-alpha
+		.class = TrueColor                                                                                                                                           // patch: dmenu-alpha
+	};                                                                                                                                                             // patch: dmenu-alpha
+	long masks = VisualScreenMask | VisualDepthMask | VisualClassMask;                                                                                             // patch: dmenu-alpha
+                                                                                                                                                                 // patch: dmenu-alpha
+	infos = XGetVisualInfo(dpy, masks, &tpl, &nitems);                                                                                                             // patch: dmenu-alpha
+	visual = NULL;                                                                                                                                                 // patch: dmenu-alpha
+	for(i = 0; i < nitems; i ++) {                                                                                                                                 // patch: dmenu-alpha
+		fmt = XRenderFindVisualFormat(dpy, infos[i].visual);                                                                                                         // patch: dmenu-alpha
+		if (fmt->type == PictTypeDirect && fmt->direct.alphaMask) {                                                                                                  // patch: dmenu-alpha
+			visual = infos[i].visual;                                                                                                                                  // patch: dmenu-alpha
+			depth = infos[i].depth;                                                                                                                                    // patch: dmenu-alpha
+			cmap = XCreateColormap(dpy, root, visual, AllocNone);                                                                                                      // patch: dmenu-alpha
+			useargb = 1;                                                                                                                                               // patch: dmenu-alpha
+			break;                                                                                                                                                     // patch: dmenu-alpha
+		}                                                                                                                                                            // patch: dmenu-alpha
+	}                                                                                                                                                              // patch: dmenu-alpha
+                                                                                                                                                                 // patch: dmenu-alpha
+	XFree(infos);                                                                                                                                                  // patch: dmenu-alpha
+                                                                                                                                                                 // patch: dmenu-alpha
+	if (! visual) {                                                                                                                                                // patch: dmenu-alpha
+		visual = DefaultVisual(dpy, screen);                                                                                                                         // patch: dmenu-alpha
+		depth = DefaultDepth(dpy, screen);                                                                                                                           // patch: dmenu-alpha
+		cmap = DefaultColormap(dpy, screen);                                                                                                                         // patch: dmenu-alpha
+	}                                                                                                                                                              // patch: dmenu-alpha
+}                                                                                                                                                                // patch: dmenu-alpha
 
 int
 main(int argc, char *argv[])
@@ -842,7 +895,9 @@ main(int argc, char *argv[])
 	if (!XGetWindowAttributes(dpy, parentwin, &wa))
 		die("could not get embedding window attributes: 0x%lx",
 		    parentwin);
-	drw = drw_create(dpy, screen, root, wa.width, wa.height);
+//drw = drw_create(dpy, screen, root, wa.width, wa.height);                                                                                                      // patch: dmenu-alpha
+	xinitvisual();                                                                                                                                                 // patch: dmenu-alpha
+	drw = drw_create(dpy, screen, root, wa.width, wa.height, visual, depth, cmap);                                                                                 // patch: dmenu-alpha
 	if (!drw_fontset_create(drw, fonts, LENGTH(fonts)))
 		die("no fonts could be loaded.");
 	lrpad = drw->fonts->h;
