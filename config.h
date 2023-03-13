@@ -26,7 +26,7 @@ static const unsigned int alphas[SchemeLast][2] = {                             
 };                                                                                                       // patch: dmenu-alpha
 
 /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
-static unsigned int lines      = 24;
+static unsigned int lines      = 32;
 
 /*
  * Characters not considered part of a word while deleting words
