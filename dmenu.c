@@ -769,7 +769,7 @@ setup(void)
 //win = XCreateWindow(dpy, parentwin, x, y, mw, mh, 0,                                                                                                           // patch: dmenu-alpha
 //                    CopyFromParent, CopyFromParent, CopyFromParent,                                                                                            // patch: dmenu-alpha
 //                    CWOverrideRedirect | CWBackPixel | CWEventMask, &swa);                                                                                     // patch: dmenu-alpha
- 	win = XCreateWindow(dpy, parentwin, x, y, mw, mh, 0,                                                                                                           // patch: dmenu-alpha
+ 	win = XCreateWindow(dpy, root, x, y, mw, mh, 0,                                                                                                                // patch: dmenu-alpha
  	                    depth, CopyFromParent, visual,                                                                                                             // patch: dmenu-alpha
  	                    CWOverrideRedirect | CWBackPixel | CWBorderPixel | CWColormap | CWEventMask, &swa);                                                        // patch: dmenu-alpha
 	XSetClassHint(dpy, win, &ch);
@@ -784,6 +784,7 @@ setup(void)
 
 	XMapRaised(dpy, win);
 	if (embed) {
+		XReparentWindow(dpy, win, parentwin, x, y);
 		XSelectInput(dpy, parentwin, FocusChangeMask | SubstructureNotifyMask);
 		if (XQueryTree(dpy, parentwin, &dw, &w, &dws, &du) && dws) {
 			for (i = 0; i < du && dws[i] != win; ++i)
