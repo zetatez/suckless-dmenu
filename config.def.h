@@ -7,7 +7,7 @@ static int min_width = 2000;                /* minimum width when centered */
 static const unsigned int alpha = (int)(0.81*255);                                                       // patch: dmenu-alpha: 0-255
 /* -fn option overrides fonts[0]; default X11 font or font set */
 static const char *fonts[] = {
-	"DejaVuSansMono Nerd Font:style=Book"
+	"DejaVuSansMono Nerd Font:style=Book:size=18"
 };
 static const char *prompt = "";      /* -p  option; prompt to the left of input field */
 static const char *colors[SchemeLast][2] = {
@@ -26,7 +26,7 @@ static const unsigned int alphas[SchemeLast][2] = {                             
 };                                                                                                       // patch: dmenu-alpha
 
 /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
-static unsigned int lines      = 32;
+static unsigned int lines      = 24;
 
 /*
  * Characters not considered part of a word while deleting words
