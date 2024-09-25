@@ -3,8 +3,7 @@
 
 static int topbar = 0;                      /* -b  option; if 0, dmenu appears at bottom     */
 static int centered = 1;                    /* -c option; centers dmenu on screen */
-// static int min_width = 2000;                /* minimum width when centered, alienware */
-static int min_width = 1600;                   /* minimum width when centered, thinkpad */
+static int min_width = 1400;                   /* minimum width when centered, thinkpad */
 static const unsigned int alpha = (int)(0.81*255);                                                       // patch: dmenu-alpha: 0-255
 /* -fn option overrides fonts[0]; default X11 font or font set */
 static const char *fonts[] = {
@@ -28,7 +27,7 @@ static const unsigned int alphas[SchemeLast][2] = {                             
 };                                                                                                       // patch: dmenu-alpha
 
 /* -l option; if nonzero, dmenu uses vertical list with given number of lines */
-static unsigned int lines      = 8;
+static unsigned int lines      = 16;
 
 /*
  * Characters not considered part of a word while deleting words
